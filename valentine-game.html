@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch the Hearts - Valentine's Game 💕</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-image: url('/mnt/user-data/uploads/WhatsApp_Image_2026-02-14_at_10_05_49_PM.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .game-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .game-header h1 {
+            color: #d63447;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .game-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            gap: 10px;
+        }
+
+        .stat {
+            background: linear-gradient(135deg, #ffe8ec 0%, #ffc1cc 100%);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-weight: bold;
+            color: #d63447;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(180deg, #fff5f7 0%, #ffe8ec 100%);
+            border-radius: 15px;
+            position: relative;
+            cursor: none;
+            touch-action: none;
+        }
+
+        .falling-item {
+            position: absolute;
+            font-size: 30px;
+            cursor: pointer;
+            user-select: none;
+            transition: none;
+            animation: fall linear;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(400px);
+            }
+        }
+
+        .basket {
+            position: absolute;
+            bottom: 10px;
+            font-size: 50px;
+            transition: left 0.1s linear;
+            user-select: none;
+            z-index: 10;
+        }
+
+        .game-over-screen {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+
+        .game-over-screen h2 {
+            color: #d63447;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .game-over-screen p {
+            font-size: 1.2em;
+            color: #666;
+            margin: 10px 0;
+        }
+
+        .final-score {
+            background: linear-gradient(135deg, #d63447 0%, #ff6b9d 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.5em;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .play-again-btn {
+            background: linear-gradient(135deg, #d63447 0%, #ff6b9d 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .play-again-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(214, 52, 71, 0.4);
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .instructions h3 {
+            color: #d63447;
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            color: #666;
+            line-height: 1.8;
+            padding-left: 20px;
+        }
+
+        .delivery-message {
+            background: linear-gradient(135deg, #fff9e6 0%, #ffe8cc 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .delivery-message h3 {
+            color: #d63447;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .delivery-message p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .game-header h1 {
+                font-size: 1.5em;
+            }
+
+            #gameCanvas {
+                height: 300px;
+            }
+
+            .game-stats {
+                flex-direction: column;
+            }
+
+            .basket {
+                font-size: 40px;
+            }
+
+            .falling-item {
+                font-size: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-header">
+            <h1>💝 Catch the Hearts Game 💝</h1>
+            <p>While Ashok delivers your order, let's play!</p>
+            <div class="game-stats">
+                <div class="stat">❤️ Score: <span id="score">0</span></div>
+                <div class="stat">⏱️ Time: <span id="timer">60</span>s</div>
+                <div class="stat">💔 Missed: <span id="missed">0</span></div>
+            </div>
+        </div>
+
+        <div class="game-container">
+            <div id="gameCanvas">
+                <div class="basket" id="basket">🧺</div>
+            </div>
+            
+            <div class="game-over-screen" id="gameOverScreen">
+                <h2>🎮 Game Over! 🎮</h2>
+                <div class="final-score">
+                    Final Score: <span id="finalScore">0</span> ❤️
+                </div>
+                <p id="gameMessage"></p>
+                <button class="play-again-btn" onclick="restartGame()">Play Again! 🔄</button>
+            </div>
+        </div>
+
+        <div class="delivery-message pulse">
+            <h3>🛵 Your order is on the way! 🛵</h3>
+            <p>Ashok will deliver soon! Keep playing until he arrives! 💕</p>
+            <p style="margin-top: 10px; font-weight: bold;">📞 Contact: 8652281082</p>
+        </div>
+
+        <div class="instructions">
+            <h3>📖 How to Play:</h3>
+            <ul>
+                <li>🖱️ Move your mouse (or finger on mobile) to control the basket</li>
+                <li>❤️ Catch the falling hearts to score points (+10 points)</li>
+                <li>💎 Catch diamonds for bonus points (+25 points)</li>
+                <li>💔 Avoid broken hearts (-5 points)</li>
+                <li>⏰ You have 60 seconds to score as high as possible!</li>
+                <li>🎯 Try to beat your high score!</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const basket = document.getElementById('basket');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const missedDisplay = document.getElementById('missed');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const gameMessage = document.getElementById('gameMessage');
+
+        let score = 0;
+        let missed = 0;
+        let timeLeft = 60;
+        let gameActive = false;
+        let gameInterval;
+        let timerInterval;
+        let spawnInterval;
+        let basketPosition = 50; // percentage
+        let highScore = parseInt(localStorage.getItem('valentineHighScore')) || 0;
+
+        const items = [
+            { emoji: '❤️', points: 10, type: 'good' },
+            { emoji: '💕', points: 10, type: 'good' },
+            { emoji: '💖', points: 10, type: 'good' },
+            { emoji: '💗', points: 10, type: 'good' },
+            { emoji: '💝', points: 15, type: 'good' },
+            { emoji: '💎', points: 25, type: 'bonus' },
+            { emoji: '⭐', points: 20, type: 'bonus' },
+            { emoji: '💔', points: -5, type: 'bad' }
+        ];
+
+        // Mouse/Touch controls
+        canvas.addEventListener('mousemove', (e) => {
+            if (!gameActive) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            basketPosition = (x / rect.width) * 100;
+            updateBasketPosition();
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!gameActive) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = e.touches[0].clientX - rect.left;
+            basketPosition = (x / rect.width) * 100;
+            updateBasketPosition();
+        });
+
+        function updateBasketPosition() {
+            basket.style.left = `calc(${basketPosition}% - 25px)`;
+        }
+
+        function spawnItem() {
+            if (!gameActive) return;
+
+            const item = items[Math.floor(Math.random() * items.length)];
+            const fallingItem = document.createElement('div');
+            fallingItem.className = 'falling-item';
+            fallingItem.textContent = item.emoji;
+            fallingItem.dataset.points = item.points;
+            fallingItem.dataset.type = item.type;
+
+            const startPosition = Math.random() * 90;
+            fallingItem.style.left = startPosition + '%';
+            fallingItem.style.top = '-40px';
+
+            const duration = 3 + Math.random() * 2; // 3-5 seconds
+            fallingItem.style.animationDuration = duration + 's';
+
+            canvas.appendChild(fallingItem);
+
+            // Check for collision
+            const checkCollision = setInterval(() => {
+                if (!gameActive) {
+                    clearInterval(checkCollision);
+                    return;
+                }
+
+                const itemRect = fallingItem.getBoundingClientRect();
+                const basketRect = basket.getBoundingClientRect();
+
+                if (itemRect.bottom >= basketRect.top &&
+                    itemRect.top <= basketRect.bottom &&
+                    itemRect.left < basketRect.right &&
+                    itemRect.right > basketRect.left) {
+                    
+                    // Caught!
+                    const points = parseInt(fallingItem.dataset.points);
+                    score += points;
+                    scoreDisplay.textContent = score;
+                    
+                    // Visual feedback
+                    if (points > 0) {
+                        showFloatingScore('+' + points, itemRect.left, itemRect.top);
+                    } else {
+                        showFloatingScore(points, itemRect.left, itemRect.top);
+                    }
+                    
+                    fallingItem.remove();
+                    clearInterval(checkCollision);
+                }
+
+                // Check if missed
+                if (itemRect.top > canvas.getBoundingClientRect().bottom) {
+                    if (fallingItem.dataset.type === 'good' || fallingItem.dataset.type === 'bonus') {
+                        missed++;
+                        missedDisplay.textContent = missed;
+                    }
+                    fallingItem.remove();
+                    clearInterval(checkCollision);
+                }
+            }, 50);
+        }
+
+        function showFloatingScore(points, x, y) {
+            const floatingScore = document.createElement('div');
+            floatingScore.textContent = points;
+            floatingScore.style.cssText = `
+                position: fixed;
+                left: ${x}px;
+                top: ${y}px;
+                font-size: 24px;
+                font-weight: bold;
+                color: ${points > 0 ? '#d63447' : '#666'};
+                pointer-events: none;
+                z-index: 1000;
+                animation: floatUp 1s ease-out forwards;
+            `;
+            document.body.appendChild(floatingScore);
+
+            setTimeout(() => floatingScore.remove(), 1000);
+        }
+
+        // Add CSS for floating score animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes floatUp {
+                from {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateY(-50px);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        function startGame() {
+            gameActive = true;
+            score = 0;
+            missed = 0;
+            timeLeft = 60;
+            scoreDisplay.textContent = score;
+            missedDisplay.textContent = missed;
+            timerDisplay.textContent = timeLeft;
+            gameOverScreen.style.display = 'none';
+
+            // Remove any existing falling items
+            document.querySelectorAll('.falling-item').forEach(item => item.remove());
+
+            // Spawn items periodically
+            spawnInterval = setInterval(spawnItem, 800);
+
+            // Timer
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(spawnInterval);
+            clearInterval(timerInterval);
+
+            // Remove all falling items
+            document.querySelectorAll('.falling-item').forEach(item => item.remove());
+
+            // Show game over screen
+            finalScoreDisplay.textContent = score;
+            
+            // Update high score
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('valentineHighScore', highScore);
+                gameMessage.innerHTML = `
+                    🎉 NEW HIGH SCORE! 🎉<br>
+                    You're amazing, Chetna! 💕<br>
+                    Previous best: ${highScore - score}
+                `;
+            } else {
+                gameMessage.innerHTML = `
+                    Great job, Chetna! 💖<br>
+                    High Score: ${highScore}<br>
+                    Keep playing to beat it!
+                `;
+            }
+
+            gameOverScreen.style.display = 'block';
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        // Auto-start game when page loads
+        window.addEventListener('load', () => {
+            setTimeout(startGame, 1000);
+        });
+    </script>
+</body>
+</html>
